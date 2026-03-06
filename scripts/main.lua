@@ -120,7 +120,18 @@ function DBAPI_Listener:loadMap(filename)
         DatabaseAdapter.init(FlatDB, dbPath)
     end
     print("DBAPI: Database layer initialized")
-    
+
+    ItemSystem.save = Utils.prependedFunction(
+        ItemSystem.save,
+        function()
+            print("DBAPI [SAVE-HOOK]: ItemSystem.save hook triggered")
+            if DatabaseAdapter then
+                DatabaseAdapter.save()
+            end
+        end
+    )
+    print("DBAPI: ItemSystem.save hook registered")
+
     -- Register console commands here to ensure dependencies are initialized
     if ConsoleInterface then
         ConsoleInterface.register(deps)
