@@ -98,6 +98,23 @@ local dbMetatable = {
 -- Constructor: FlatDB(path) returns a db instance
 -- =============================================================================
 
+--- Updates the filesystem path for an existing db instance.
+--- Used when FS25 swaps savegameDirectory during save.
+--- @param db table The db instance
+--- @param newPath string The new path to write to
+function FlatDB.setPath(db, newPath)
+    if db and newPath then
+        pathPool[db] = newPath
+    end
+end
+
+--- Returns the current filesystem path for a db instance.
+--- @param db table The db instance
+--- @return string|nil path
+function FlatDB.getPath(db)
+    return db and pathPool[db] or nil
+end
+
 setmetatable(FlatDB, {
     __call = function(_, path)
         if dbPool[path] then return dbPool[path] end
