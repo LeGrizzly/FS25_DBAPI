@@ -15,10 +15,21 @@ A centralized database mod for Farming Simulator 25 that provides a global `DBAP
 
 ### Check if DBAPI is available
 
+```xml
+<modDesc>
+  <name>My Mod</name>
+  <version>1.0.0</version>
+  <author>LeGrizzly</author>
+  <description>A mod that uses FS25_DBAPI for data storage.</description>
+  <dependencies>
+    <dependency name="FS25_DBAPI" />
+  </dependencies>
+</modDesc>
+```
+
 ```lua
-if _G.DBAPI and _G.DBAPI.isReady() then
-    -- Safe to use the API
-end
+-- Safe to use the API
+local DBAPI = g_globalMods["FS25_DBAPI"]
 ```
 
 ### Store and retrieve data
@@ -67,7 +78,7 @@ Available in the developer console (`~` key):
 1. Download the latest release ZIP
 2. Place it in your FS25 mods folder (`Documents/My Games/FarmingSimulator2025/mods/`)
 3. Enable the mod in the game's mod manager
-4. Other mods can now use `_G.DBAPI` after the map loads
+4. Other mods can now use `local DBAPI = g_globalMods["FS25_DBAPI"]` after the map loads
 
 ## Architecture
 
