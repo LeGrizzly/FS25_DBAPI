@@ -5,15 +5,18 @@ local DatabaseAdapter = {}
 
 local db = nil
 local dbPath = nil
+local flatDBRef = nil
 
 --- Creates the database directory using FS25's sandbox-safe function.
 --- @param path string Directory path to create
 --- @return boolean success
 local function ensureDirectory(path)
     if createFolder then
+        print("DBAPI [DIR]: ensureDirectory() calling createFolder: " .. tostring(path))
         createFolder(path)
         return true
     end
+    print("DBAPI [DIR]: WARNING - createFolder is not available!")
     return false
 end
 
@@ -29,6 +32,7 @@ function DatabaseAdapter.init(flatDB, path)
     end
 
     dbPath = path or "modSaveData_DBAPI"
+    flatDBRef = flatDB
     ensureDirectory(dbPath)
     db = flatDB(dbPath)
     print("DBAPI: Database initialized at " .. tostring(dbPath))
@@ -103,8 +107,41 @@ function DatabaseAdapter.listKeys(namespace)
 end
 
 --- Persists all data to disk.
+--- Resolves the current savegameDirectory at save-time because FS25 swaps
+--- savegameDirectory to a tempsavegame folder during the save cycle.
 function DatabaseAdapter.save()
-    if db then db:save() end
+    if not db then
+        print("DBAPI [SAVE]: SKIPPED - db is nil")
+        return
+    end
+
+    local savePath = dbPath
+    if g_currentMission
+        and g_currentMission.missionInfo
+        and g_currentMission.missionInfo.savegameDirectory then
+        savePath = g_currentMission.missionInfo.savegameDirectory .. "/DBAPI_data"
+    end
+
+    if not savePath then
+        print("DBAPI [SAVE]: SKIPPED - no save path available")
+        return
+    end
+
+    print("DBAPI [SAVE]: Saving to: " .. savePath .. " (dbPath was: " .. tostring(dbPath) .. ")")
+    ensureDirectory(savePath)
+
+    local originalPath = flatDBRef and flatDBRef.getPath(db) or nil
+    if flatDBRef and savePath ~= originalPath then
+        flatDBRef.setPath(db, savePath)
+    end
+
+    db:save()
+
+    if flatDBRef and originalPath and savePath ~= originalPath then
+        flatDBRef.setPath(db, originalPath)
+    end
+
+    print("DBAPI [SAVE]: db:save() completed at " .. savePath)
 end
 
 --- Returns true if the database is initialized.
